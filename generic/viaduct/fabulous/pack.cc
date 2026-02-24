@@ -103,6 +103,7 @@ struct FabulousPacker
             if (type_str.size() < 5 || type_str.substr(0, 5) != "LUTFF")
                 continue;
             ci->type = id_FABULOUS_FF;
+
             // parse config string and unify
             size_t idx = 5;
             if (idx < type_str.size() && type_str.at(idx) == '_')
@@ -114,13 +115,7 @@ struct FabulousPacker
             } else {
                 ci->params[id_NEG_CLK] = 0;
             }
-            // clock enable
-            if (idx < type_str.size() && type_str.at(idx) == 'E')
-                ++idx;
-            if (ci->ports.count(id_E))
-                ci->renamePort(id_E, id_EN);
-            else
-                ci->addInput(id_EN); // autocreate emtpy enable port if enable missing or unused
+
             // sr presence and type
             std::string srt = type_str.substr(idx);
             if (srt == "S") {
@@ -129,13 +124,14 @@ struct FabulousPacker
             } else if (srt == "R") {
                 ci->params[id_SET_NORESET] = 0;
                 ci->params[id_ASYNC_SR] = 1;
-            } else if (srt == "SS") {
+            } else if (srt == "SS" || srt == "ESS" || srt == "SSE") {
                 ci->params[id_SET_NORESET] = 1;
                 ci->params[id_ASYNC_SR] = 0;
-            } else if (srt == "SR" || srt == "") {
+            } else if (srt == "SR" || srt == "ESR" || srt == "SRE" || srt == "E" || srt == "") {
                 ci->params[id_SET_NORESET] = 0;
                 ci->params[id_ASYNC_SR] = 0;
             } else {
+                log_error("unhandled FF type: %s\n", type_str.c_str());
                 NPNR_ASSERT_FALSE("unhandled FF type");
             }
             if (ci->ports.count(id_S))
@@ -144,6 +140,12 @@ struct FabulousPacker
                 ci->renamePort(id_R, id_SR);
             if (!ci->ports.count(id_SR))
                 ci->addInput(id_SR); // autocreate emtpy enable port if enable missing or unused
+
+            // clock enable
+            if (ci->ports.count(id_E))
+                ci->renamePort(id_E, id_EN);
+            else
+                ci->addInput(id_EN); // autocreate emtpy enable port if enable missing or unused
         }
     }
 
