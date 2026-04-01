@@ -218,7 +218,7 @@ struct FabulousPacker
         process_cluster_cell(root);
         for (auto child : root->constr_children)
             process_cluster_cell(child);
-        return test_clb.check_validity(cfg.clb, cell_tags);
+        return test_clb.check_validity(ctx, cfg.clb, cell_tags);
     }
 
     void pack_ffs()
